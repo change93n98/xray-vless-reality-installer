@@ -154,11 +154,21 @@ def start_xray():
     run_command(["systemctl", "enable", "xray"])
     run_command(["systemctl", "restart", "xray"])
 
+def get_public_ip():
+    # Prefer IPv4 for client compatibility; IPv6-only hosts fall back to IPv6.
+    try:
+        ip = run_command(["curl", "-4", "-s", "ifconfig.me"])
+    except RuntimeError:
+        ip = run_command(["curl", "-s", "ifconfig.me"])
+    if ":" in ip:
+        ip = "[" + ip + "]"
+    return ip
+
 def main():
     if os.geteuid() != 0:
         sys.exit(1)
 
-    ip = run_command(["curl", "-s", "ifconfig.me"])
+    ip = get_public_ip()
 
     install_dependencies()
     install_xray()

@@ -105,6 +105,16 @@ def configure_xray():
 
     return uuid, public_key, short_id, reality_dest
 
+def get_public_ip():
+    # Prefer IPv4 for client compatibility; IPv6-only hosts fall back to IPv6.
+    try:
+        ip = run_command(["curl", "-4", "-s", "ifconfig.me"]).strip()
+    except Exception:
+        ip = run_command(["curl", "-s", "ifconfig.me"]).strip()
+    if ":" in ip:
+        ip = "[" + ip + "]"
+    return ip
+
 def start_xray():
     print("Starting Xray...")
     run_command(["systemctl", "enable", "xray"])
@@ -117,7 +127,7 @@ def main():
         sys.exit(1)
 
     try:
-        ip = run_command(["curl", "-s", "ifconfig.me"]).strip()
+        ip = get_public_ip()
     except:
         ip = "YOUR_VPS_IP"
 
